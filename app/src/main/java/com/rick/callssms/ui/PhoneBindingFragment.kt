@@ -53,7 +53,7 @@ class PhoneFragment: Fragment() {
 
     private fun addDigit(digit: String) {
         val previousNumber = binding.phoneNumber.text.toString()
-        val newNumber = previousNubmer + digit
+        val newNumber = previousNumber + digit
         binding.phoneNumber.text = newNumber
     }
 
