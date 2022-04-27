@@ -1,7 +1,13 @@
 package com.rick.callssms
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -33,5 +39,15 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+    }
+
+    fun callNumber(number: String) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED){
+            val intent = Intent(Intent.ACTION_CALL).also {
+                it.data = Uri.parse("tel:$number")
+                startActivity(it)
+            }
+        }
+        else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 0)
     }
 }
