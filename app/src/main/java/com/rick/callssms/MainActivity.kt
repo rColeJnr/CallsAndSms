@@ -18,8 +18,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.rick.callssms.databinding.ActivityMainBinding
 import com.rick.callssms.ui.CallLogEvent
 import com.rick.callssms.ui.CommunicationViewModel
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDateTime
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.phoneFragment
+                R.id.phoneFragment, R.id.callLogFragment
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -47,25 +46,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun callNumber(number: String) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CALL_PHONE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             val intent = Intent(Intent.ACTION_CALL).also {
                 it.data = Uri.parse("tel:$number")
                 startActivity(it)
             }
-        }
-        else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 0)
+        } else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CALL_PHONE), 0)
     }
 
     fun getCallLogs() {
-        val readStoragePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-        val readCallLogPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
+        val readStoragePermission =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+        val readCallLogPermission =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG)
 
         if (readStoragePermission != PackageManager.PERMISSION_GRANTED || readCallLogPermission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_CALL_LOG), PERMISSIONS_REQUEST_CODE)
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_CALL_LOG
+                ),
+                PERMISSIONS_REQUEST_CODE
+            )
             return
         }
 
-        val cursor = application.contentResolver.query(CallLog.Calls.CONTENT_URI, null, null, null, CallLog.Calls.DATE + "DESC")
+        val cursor = application.contentResolver.query(
+            CallLog.Calls.CONTENT_URI,
+            null,
+            null,
+            null,
+            CallLog.Calls.DATE
+        )
 
         val callLog = mutableListOf<CallLogEvent>()
 
@@ -75,16 +92,16 @@ class MainActivity : AppCompatActivity() {
             val date = it.getColumnIndexOrThrow(CallLog.Calls.DATE)
             while (it.moveToNext()) {
                 val phoneNumber = cursor.getString(number)
-                val calltype = cursor.getString(type)
+                val callType = cursor.getString(type)
                 val callDate = cursor.getString(date)
-                val callDateString = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(callDate))
-                val direction = when(calltype.toInt()) {
+                val callDateString = LocalDateTime.now()
+                val direction = when (callType.toInt()) {
                     CallLog.Calls.OUTGOING_TYPE -> "OUTGOING"
                     CallLog.Calls.INCOMING_TYPE -> "INCOMING"
                     CallLog.Calls.MISSED_TYPE -> "MISSED"
                     else -> null
                 }
-                val entry = CallLogEvent(direction, phoneNumber, callDateString)
+                val entry = CallLogEvent(direction, phoneNumber, callDateString.toString())
                 callLog.add(entry)
             }
         }
@@ -99,12 +116,12 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode){
+        when (requestCode) {
             PERMISSIONS_REQUEST_CODE -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) getCallLogs()
         }
     }
 
-    companion object{
+    companion object {
         const val PERMISSIONS_REQUEST_CODE = 1
     }
 }
