@@ -24,7 +24,8 @@ class CallLogAdapter(private val activity: MainActivity
 
         init {
             view.setOnLongClickListener {
-                //TODO
+                val phoneNumber = callLog[adapterPosition].number
+                if (phoneNumber.isNotBlank()) activity.showCallLogPopup(it, phoneNumber)
                 return@setOnLongClickListener true
             }
         }

@@ -6,10 +6,13 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.CallLog
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -109,6 +112,29 @@ class MainActivity : AppCompatActivity() {
 
         communicationViewModel.callLog.value = callLog
     }
+
+    fun showCallLogPopup(view: View, phoneNumber: String) {
+        PopupMenu(this, view).apply {
+            inflate(R.menu.call_log)
+            setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.make_call -> {
+                        callNumber(phoneNumber)
+                        true
+                    }
+                    R.id.send_sms -> {
+                        openDialog(SendSMS(phoneNumber))
+                        true
+                    }
+                    else -> super.onOptionsItemSelected(it)
+                }
+            }
+            show()
+        }
+    }
+
+    private fun openDialog(dialog: DialogFragment) =
+        dialog.show(supportFragmentManager, "")
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
