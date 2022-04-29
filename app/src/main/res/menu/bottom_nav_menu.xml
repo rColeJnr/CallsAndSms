@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item
-        android:id="@+id/phoneFragment"
-        android:icon="@drawable/ic_home_black_24dp"
-        android:title="@string/make_call" />
-
-    <item
-        android:id="@+id/callLogFragment"
-        android:icon="@drawable/ic_notifications_black_24dp"
-        android:title="@string/call_log" />
 
     <item
         android:id="@+id/smsFragment"
         android:icon="@drawable/ic_baseline_message_24"
         android:title="@string/message" />
+    <item
+        android:id="@+id/phoneFragment"
+        android:icon="@drawable/ic_phone_"
+        android:title="@string/make_call" />
+
+    <item
+        android:id="@+id/callLogFragment"
+        android:icon="@drawable/ic_baseline_history_24"
+        android:title="@string/call_log" />
+
 
 </menu>

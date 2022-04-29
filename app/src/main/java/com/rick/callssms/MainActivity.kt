@@ -1,7 +1,10 @@
 package com.rick.callssms
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -27,7 +30,6 @@ import com.rick.callssms.ui.CommunicationViewModel
 import com.rick.callssms.ui.SMS
 import com.rick.callssms.ui.ViewSMS
 import layout.SendSMS
-import java.time.LocalDateTime
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,6 +41,8 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        registerReceiver(broadcastReceiver, IntentFilter("SMS_RECEIVED"))
 
         val navView: BottomNavigationView = binding.navView
 
@@ -73,7 +77,7 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.CALL_PHONE
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            val intent = Intent(Intent.ACTION_CALL).also {
+            Intent(Intent.ACTION_CALL).also {
                 it.data = Uri.parse("tel:$number")
                 startActivity(it)
             }
@@ -115,15 +119,16 @@ class MainActivity : AppCompatActivity() {
             while (it.moveToNext()) {
                 val phoneNumber = cursor.getString(number)
                 val callType = cursor.getString(type)
-                val callDate = cursor.getString(date)
-                val callDateString = LocalDateTime.now()
+                //TODO: fix call date
+//                val callDate = cursor.getString(date)
+                val callDateString = date.toString()
                 val direction = when (callType.toInt()) {
                     CallLog.Calls.OUTGOING_TYPE -> "OUTGOING"
                     CallLog.Calls.INCOMING_TYPE -> "INCOMING"
                     CallLog.Calls.MISSED_TYPE -> "MISSED"
                     else -> null
                 }
-                val entry = CallLogEvent(direction, phoneNumber, callDateString.toString())
+                val entry = CallLogEvent(direction, phoneNumber, callDateString)
                 callLog.add(entry)
             }
         }
@@ -156,11 +161,25 @@ class MainActivity : AppCompatActivity() {
         dialog.show(supportFragmentManager, "")
 
     fun getTexts() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_SMS), READ_SMS_REQUEST_CODE)
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_SMS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.READ_SMS),
+                READ_SMS_REQUEST_CODE
+            )
             return
         }
-        val cursor = application.contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, "date DESC")
+        val cursor = application.contentResolver.query(
+            Uri.parse("content://sms/inbox"),
+            null,
+            null,
+            null,
+            "date DESC"
+        )
         val texts = mutableListOf<SMS>()
 
         cursor?.use {
@@ -178,11 +197,11 @@ class MainActivity : AppCompatActivity() {
         communicationViewModel.texts.value = texts.take(20)
     }
 
-    fun showSMSPopup(view: View, text: SMS){
+    fun showSMSPopup(view: View, text: SMS) {
         PopupMenu(this, view).apply {
             inflate(R.menu.sms)
             setOnMenuItemClickListener {
-                when(it.itemId){
+                when (it.itemId) {
                     R.id.viewMessage -> {
                         openDialog(ViewSMS(text))
                         true
@@ -202,8 +221,12 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.error_sending_sms), Toast.LENGTH_LONG).show()
             return false
         }
-        return if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
-            val  smsManager = SmsManager.getDefault()
+        return if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.SEND_SMS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val smsManager = SmsManager.getDefault()
             if (message.length > 160) {
                 val messages: ArrayList<String> = smsManager.divideMessage(message)
                 smsManager.sendMultipartTextMessage(number, null, messages, null, null)
@@ -212,6 +235,12 @@ class MainActivity : AppCompatActivity() {
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), 0)
             false
+        }
+    }
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, p1: Intent?) {
+            getTexts()
         }
     }
 
