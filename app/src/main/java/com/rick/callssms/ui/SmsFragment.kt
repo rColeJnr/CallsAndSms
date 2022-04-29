@@ -10,6 +10,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.rick.callssms.MainActivity
 import com.rick.callssms.databinding.FragmentSmsBinding
+import layout.SendSMS
 
 class SmsFragment: Fragment() {
 
@@ -48,7 +49,7 @@ class SmsFragment: Fragment() {
         }
 
         binding.fab.setOnClickListener {
-            //TODO
+            mActivity.openDialog(SendSMS(null))
         }
     }
 }

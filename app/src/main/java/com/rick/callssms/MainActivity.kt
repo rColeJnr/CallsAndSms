@@ -206,8 +206,12 @@ class MainActivity : AppCompatActivity() {
             val  smsManager = SmsManager.getDefault()
             if (message.length > 160) {
                 val messages: ArrayList<String> = smsManager.divideMessage(message)
-                smsManager.sendMultipartTextMessage(number, null, message, null, null)
-            }
+                smsManager.sendMultipartTextMessage(number, null, messages, null, null)
+            } else smsManager.sendTextMessage(number, null, message, null, null)
+            true
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.SEND_SMS), 0)
+            false
         }
     }
 
