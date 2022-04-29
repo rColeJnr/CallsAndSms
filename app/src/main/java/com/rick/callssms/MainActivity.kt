@@ -7,7 +7,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.CallLog
 import android.provider.Telephony
+import android.telephony.SmsManager
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
@@ -23,6 +25,8 @@ import com.rick.callssms.databinding.ActivityMainBinding
 import com.rick.callssms.ui.CallLogEvent
 import com.rick.callssms.ui.CommunicationViewModel
 import com.rick.callssms.ui.SMS
+import com.rick.callssms.ui.ViewSMS
+import layout.SendSMS
 import java.time.LocalDateTime
 
 class MainActivity : AppCompatActivity() {
@@ -148,10 +152,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openDialog(dialog: DialogFragment) =
+    fun openDialog(dialog: DialogFragment) =
         dialog.show(supportFragmentManager, "")
-
-
 
     fun getTexts() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED){
@@ -191,6 +193,20 @@ class MainActivity : AppCompatActivity() {
                     }
                     else -> super.onOptionsItemSelected(it)
                 }
+            }
+        }
+    }
+
+    fun sendSMS(number: String, message: String): Boolean {
+        if (number.isEmpty() || message.isEmpty()) {
+            Toast.makeText(this, getString(R.string.error_sending_sms), Toast.LENGTH_LONG).show()
+            return false
+        }
+        return if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED){
+            val  smsManager = SmsManager.getDefault()
+            if (message.length > 160) {
+                val messages: ArrayList<String> = smsManager.divideMessage(message)
+                smsManager.sendMultipartTextMessage(number, null, message, null, null)
             }
         }
     }
