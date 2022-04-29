@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.CallLog
+import android.provider.Telephony
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.rick.callssms.databinding.ActivityMainBinding
 import com.rick.callssms.ui.CallLogEvent
 import com.rick.callssms.ui.CommunicationViewModel
+import com.rick.callssms.ui.SMS
 import java.time.LocalDateTime
 
 class MainActivity : AppCompatActivity() {
@@ -46,6 +48,19 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PERMISSIONS_REQUEST_CODE -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) getCallLogs()
+            READ_SMS_REQUEST_CODE -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) getTexts()
+
+        }
     }
 
     fun callNumber(number: String) {
@@ -136,18 +151,33 @@ class MainActivity : AppCompatActivity() {
     private fun openDialog(dialog: DialogFragment) =
         dialog.show(supportFragmentManager, "")
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            PERMISSIONS_REQUEST_CODE -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) getCallLogs()
+
+
+    fun getTexts() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_SMS), READ_SMS_REQUEST_CODE)
+            return
         }
+        val cursor = application.contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, "date DESC")
+        val texts = mutableListOf<SMS>()
+
+        cursor?.use {
+            val senderColumn = it.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.ADDRESS)
+            val bodyColumn = it.getColumnIndexOrThrow(Telephony.TextBasedSmsColumns.BODY)
+
+            while (it.moveToNext()) {
+                val sender = it.getString(senderColumn) ?: getString(R.string.error_sender)
+                val body = it.getString(bodyColumn) ?: getString(R.string.error_body)
+                val sms = SMS(sender, body)
+                texts.add(sms)
+            }
+        }
+        cursor?.close()
+        communicationViewModel.texts.value = texts.take(20)
     }
 
     companion object {
         const val PERMISSIONS_REQUEST_CODE = 1
+        const val READ_SMS_REQUEST_CODE = 2
     }
 }
