@@ -11,4 +11,9 @@
         android:icon="@drawable/ic_notifications_black_24dp"
         android:title="@string/call_log" />
 
+    <item
+        android:id="@+id/smsFragment"
+        android:icon="@drawable/ic_baseline_message_24"
+        android:title="@string/message" />
+
 </menu>

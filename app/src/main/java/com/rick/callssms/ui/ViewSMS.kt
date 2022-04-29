@@ -6,6 +6,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.rick.callssms.MainActivity
 import com.rick.callssms.databinding.ViewSmsBinding
+import layout.SendSMS
 
 class ViewSMS(private val sms: SMS): DialogFragment() {
 

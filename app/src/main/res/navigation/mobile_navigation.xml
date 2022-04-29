@@ -13,4 +13,8 @@
         android:id="@+id/callLogFragment"
         android:name="com.rick.callssms.ui.CallLogFragment"
         android:label="CallLogFragment" />
+    <fragment
+        android:id="@+id/smsFragment"
+        android:name="com.rick.callssms.ui.SmsFragment"
+        android:label="SmsFragment" />
 </navigation>
