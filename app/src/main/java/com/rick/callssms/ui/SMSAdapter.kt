@@ -20,13 +20,13 @@ class SMSAdapter (private val activity: MainActivity) : RecyclerView.Adapter<SMS
             view.isClickable = true
             view.setOnClickListener(this)
             view.setOnLongClickListener {
-                //TODO. open sms options
+                activity.showSMSPopup(it, texts[adapterPosition])
                 return@setOnLongClickListener true
             }
         }
 
         override fun onClick(p0: View?) {
-            activity.openDialog(ViewSMS(texts(adapterPosition)))
+            activity.openDialog(ViewSMS(texts[adapterPosition]))
         }
     }
 

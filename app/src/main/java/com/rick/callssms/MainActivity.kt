@@ -176,6 +176,25 @@ class MainActivity : AppCompatActivity() {
         communicationViewModel.texts.value = texts.take(20)
     }
 
+    fun showSMSPopup(view: View, text: SMS){
+        PopupMenu(this, view).apply {
+            inflate(R.menu.sms)
+            setOnMenuItemClickListener {
+                when(it.itemId){
+                    R.id.viewMessage -> {
+                        openDialog(ViewSMS(text))
+                        true
+                    }
+                    R.id.reply -> {
+                        openDialog(SendSMS(text.sender))
+                        true
+                    }
+                    else -> super.onOptionsItemSelected(it)
+                }
+            }
+        }
+    }
+
     companion object {
         const val PERMISSIONS_REQUEST_CODE = 1
         const val READ_SMS_REQUEST_CODE = 2
